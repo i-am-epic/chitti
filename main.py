@@ -57,12 +57,20 @@ def get_country(name):
 
 @client.event
 async def on_ready():
+  await client.change_presence(status=discord.Status.online,activity=discord.Game("ch help"))
   print("Bots up and running as {0.user}".format(client))
+
+@client.event
+async def on_command_error(ctx,error):
+  if isinstance(error,commands.CommandNotFound):
+    await ctx.send("That command don't exist")
+  await ctx.send(f"Error : {error}")
+
 
 @client.event
 async def on_member_join(ctx,member):
   print(f"Welcome {member} to the server")
-  await ctx.channel.send(f"Welcome {member} to the server")
+  await ctx.send(f"Welcome {member} to the server")
 
 @client.command(aliases=["8ball","?","will","is","should","would","could","8b"],pass_context=True)
 async def can(ctx,*message):
@@ -95,7 +103,7 @@ async def can(ctx,*message):
 @client.event
 async def on_member_remove(ctx,member):
   print(f"{member} left us")
-  await ctx.channel.send(f"{member} left us")
+  await ctx.send(f"{member} left us")
 
 @client.command()
 async def age(ctx,member):
@@ -113,6 +121,26 @@ async def country(ctx,member):
 async def clear(ctx,amount=10):
   await ctx.channel.send("Make sure bot has message moderation permission, if not add a role with the permisiion")
   await ctx.channel.purge(limit = amount+2)
+
+@client.command()
+async def kick(ctx,member : discord.Member,*,reason=None):
+  await member.kick(reason=reason)
+
+@client.command()
+async def ban(ctx,member : discord.Member,*,reason=None):
+  await member.ban(reason=reason)
+
+@client.command()
+async def unban(ctx,*,member):
+  banned_users = await ctx.guild.bans()
+  banned_name,banned_hash = member.split('#')
+  for banned in banned_users:
+    user =banned.user
+    if (user.name,user.discriminator) == (banned_name,banned_hash):
+
+      await ctx.guild.unban(user)
+      await ctx.send(f"Unbanned.{user.mention}")
+      return
 
 @client.command()
 async def f(ctx):
@@ -137,12 +165,12 @@ async def meme(ctx,subrdt= "meme"):
 async def rstart(ctx,subrdt= "meme",times = 1 ,slow = 30):
   subreddit = reddit.subreddit(subrdt)
   all_content = []
-  top = subreddit.new(limit=times*2)
+  top = subreddit.top(limit=times*4)
   i=1
-  message = await ctx.send("Hold on finding best of the best......")
+  message = await ctx.send("Hold on, finding best of the best......")
 
   for content in top:
-    await message.edit(content=f"Hold on finding best of the best......{i//10}/{times}")
+    await message.edit(content=f"Hold on, finding best of the best......{i//4}/{times}")
     all_content.append(content)
     i=i+1
   await ctx.channel.purge(limit = 1)
@@ -155,6 +183,7 @@ async def rstart(ctx,subrdt= "meme",times = 1 ,slow = 30):
     em.set_image(url = url)
     await ctx.send(embed = em)
     time.sleep(slow)   
+
 @client.command()
 async def ping(ctx):
   await ctx.send(f"{client.latency * 1000}ms")
@@ -162,7 +191,43 @@ async def ping(ctx):
 @client.command()
 async def inspire(ctx):
   await ctx.send(get_quote())
+
+@client.command(aliases=["gaymeter","isgay"])
+async def gay(ctx,name):
+  r = random.randint(0,10)
+  if r<4:
+    b="🟪"
+  elif r>6:
+    b="🟥"
+  else:
+    b="🟨"
+  strin = r*b+(10-r)*"⬛"+" "+str(r*10)+"%"
+  await ctx.send(strin)
+
+@client.command(aliases=["simpmeter","issimp"])
+async def simp(ctx,name):
+  r = random.randint(0,10)
+  if r<4:
+    b="🟪"
+  elif r>6:
+    b="🟥"
+  else:
+    b="🟨"
+  strin = r*b+(10-r)*"⬛"+" "+str(r*10)+"%"
+  await ctx.send(strin)
   
+@client.event
+async def on_message(message):
+  if message.author==client.user:
+    return
+  if any(word in message.content for word in [" f "," F "]):
+    await message.channel.send("F")
+  if message.content.startswith("f "or"F "):
+    await message.channel.send("F")
+
+
+  await client.process_commands(message)
+
 
 keep_alive()
 client.run(token1)
