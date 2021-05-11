@@ -6,7 +6,6 @@ import praw
 import random
 from http_alive import keep_alive
 from discord.ext import commands
-import datetime
 import time
 
 
@@ -84,7 +83,7 @@ async def country(ctx,member):
   await ctx.channel.send(get_country(member))
 
 @client.command()
-async def clear(ctx,amount=1000000):
+async def clear(ctx,amount=10):
   await ctx.channel.send("Make sure bot has message moderation permission, if not add a role with the permisiion")
   await ctx.channel.purge(limit = amount+2)
 
@@ -108,21 +107,26 @@ async def meme(ctx,subrdt= "meme"):
   await ctx.send(embed = em)
 
 @client.command()
-async def rstart(ctx,subrdt= "meme",times = 1 ,slow = 60):
+async def rstart(ctx,subrdt= "meme",times = 1 ,slow = 30):
   subreddit = reddit.subreddit(subrdt)
   all_content = []
-  top = subreddit.top(limit=times)
+  top = subreddit.top(limit=times*10)
+  i=1
   for content in top:
-    title = content.title
-    url = content.url
+    await ctx.send(f"Hold on finding best of the best......{i//10}/{times}")
+    all_content.append(content)
+    i=i+1
+  await ctx.channel.purge(limit = 1)
+
+  for i in range(times):
+    random_content = random.choice(all_content)
+    title = random_content.title
+    url = random_content.url
     em = discord.Embed(title = title)
     em.set_image(url = url)
     await ctx.send(embed = em)
     time.sleep(slow)
    
-    
-
-
 @client.command()
 async def ping(ctx):
   await ctx.send(f"{client.latency * 1000}ms")
