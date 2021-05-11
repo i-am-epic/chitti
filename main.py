@@ -11,7 +11,7 @@ import time
 
 print("hekkk")
 
-client = commands.Bot(command_prefix='ch ', description="This is a Helper Bot")
+client = commands.Bot(command_prefix=["ch ","Ch ","chitti ","Chitti ","CH "], description="This is a Helper Bot")
 token1 = os.environ['token']
 rcid = os.environ['rcid']
 rcs = os.environ['rcs']
@@ -60,15 +60,42 @@ async def on_ready():
   print("Bots up and running as {0.user}".format(client))
 
 @client.event
-async def on_member_join(member):
+async def on_member_join(ctx,member):
   print(f"Welcome {member} to the server")
-  await message.channel.send(f"Welcome {member} to the server")
+  await ctx.channel.send(f"Welcome {member} to the server")
 
+@client.command(aliases=["8ball","?","will","is","should","would","could","8b"],pass_context=True)
+async def can(ctx,*message):
+  response = ["It is certain.","It is decidedly so.","Without a doubt.","Yes - definitely.",
+  "You may rely on it.",
+  "As I see it, yes.",
+  "Most likely.",
+  "Outlook good.",
+  "Yes.",
+  "Signs point to yes.",
+  "Reply hazy, try again.",
+  "Ask again later.",
+  "Better not tell you now.",
+  "Cannot predict now.",
+  "Concentrate and ask again.",
+  "Don't count on it.",
+  "My reply is no.",
+  "My sources say no.",
+  "Outlook not so good.",
+  "Very doubtful."]
+  mesg = ""
+  for m in message:
+    mesg += " "+str(m) 
+  text = random.choice(response)
+  text = f"{ctx.message.author.name}:  {mesg}\nchitti says:  {text}"
+  await ctx.channel.purge(limit=1)
+  em = discord.Embed(title = text)
+  await ctx.send(embed = em)
 
 @client.event
-async def on_member_remove(member):
+async def on_member_remove(ctx,member):
   print(f"{member} left us")
-  await message.channel.send(f"{member} left us")
+  await ctx.channel.send(f"{member} left us")
 
 @client.command()
 async def age(ctx,member):
@@ -91,11 +118,11 @@ async def clear(ctx,amount=10):
 async def f(ctx):
   await ctx.channel.send("f")
 
-@client.command()
+@client.command(aliases =["reddit","r","subreddit","sr"])
 async def meme(ctx,subrdt= "meme"):
   subreddit = reddit.subreddit(subrdt)
   all_content = []
-  top = subreddit.top(limit=50)
+  top = subreddit.new(limit=10)
   for content in top:
     all_content.append(content)
 
@@ -110,10 +137,12 @@ async def meme(ctx,subrdt= "meme"):
 async def rstart(ctx,subrdt= "meme",times = 1 ,slow = 30):
   subreddit = reddit.subreddit(subrdt)
   all_content = []
-  top = subreddit.top(limit=times*10)
+  top = subreddit.new(limit=times*2)
   i=1
+  message = await ctx.send("Hold on finding best of the best......")
+
   for content in top:
-    await ctx.send(f"Hold on finding best of the best......{i//10}/{times}")
+    await message.edit(content=f"Hold on finding best of the best......{i//10}/{times}")
     all_content.append(content)
     i=i+1
   await ctx.channel.purge(limit = 1)
@@ -125,8 +154,7 @@ async def rstart(ctx,subrdt= "meme",times = 1 ,slow = 30):
     em = discord.Embed(title = title)
     em.set_image(url = url)
     await ctx.send(embed = em)
-    time.sleep(slow)
-   
+    time.sleep(slow)   
 @client.command()
 async def ping(ctx):
   await ctx.send(f"{client.latency * 1000}ms")
