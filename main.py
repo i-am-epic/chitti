@@ -7,6 +7,8 @@ import random
 from http_alive import keep_alive
 from discord.ext import commands
 import time
+from bs4 import BeautifulSoup
+
 
 print("hekkk")
 
@@ -17,7 +19,7 @@ token1 = os.environ['token']
 rcid = os.environ['rcid']
 rcs = os.environ['rcs']
 rusername = os.environ['rusername']
-trivia_key = os.environ['trivia_key']
+trivia_key = str(os.environ['trivia_key'])
 rp = os.environ['rp']
 yt_api = os.environ['yt_api']
 ox_id = os.environ['ox_id']
@@ -94,13 +96,6 @@ def get_country(name):
     return country1
 
 
-def get_quiz():
-    r = requests.get(
-        "https://quizapi.io/api/v1/questions?apiKey=jDcR7fmeEE1MlYDudAMICPMjjk4K46F3IDnWjAxN"
-    )
-    json_data = json.loads(r.text)
-    print(r)
-    return json_data
 
 
 @client.event
@@ -205,9 +200,14 @@ async def unban(ctx, *, member):
 
 
 @client.command()
-async def f(ctx, mention):
-    if mention == None: mention = ctx.author
+async def f(ctx, mention=None):
+    if mention == None: mention = ctx.author.name
     await ctx.channel.send(f"F u {mention}")
+
+@client.command(aliases=["hi","hey","Hi","Hello"])
+async def hello(ctx, mention=None):
+    if mention == None: mention = ctx.author.name
+    await ctx.channel.send(f"Hello! {mention}")
 
 
 @client.command(aliases=["reddit", "r", "subreddit", "sr"])
@@ -225,9 +225,29 @@ async def meme(ctx, subrdt="meme"):
     em.set_image(url=url)
     await ctx.send(embed=em)
 
+def get_quiz():
+  url ="https://quizapi.io/api/v1/questions?apiKey=jDcR7fmeEE1MlYDudAMICPMjjk4K46F3IDnWjAxN&limit=1"
+  
+
+  page = requests.get(url)
+
+  r = requests.get(url=url,headers={"X-Api-Key":trivia_key})
+  soup = BeautifulSoup(page.content, 'html.parser')
+  print(soup)
+
+  print(r.status_code)
+  re = requests.get("https://quizapi.io/api/v1/questions?apiKey=jDcR7fmeEE1MlYDudAMICPMjjk4K46F3IDnWjAxN&limit=1")
+
+  json_data = json.loads(r.text)
+  json_data = json.loads(re.text)
+
+  print(r,re)
+  return json_data
+
 
 @client.command(aliases=["quiz", "test", "Quiz", "Trivia"])
 async def trivia(ctx):
+
     json_data = get_quiz()
     await ctx.send(json_data)
 
@@ -282,7 +302,7 @@ async def toss(ctx):
     await ctx.send(c)
 
 
-@client.command(aliases=["", "g", "wiki"])
+@client.command(aliases=["w", "g", "wiki"])
 async def google(ctx, *, search):
     word_id = search
     url = "https://od-api.oxforddictionaries.com:443/api/v2/entries/" + language + "/" + word_id.lower(
@@ -333,11 +353,6 @@ async def simp(ctx, name):
 
     strin = r * b + (10 - r) * "⬛" + " " + str(r * 10) + "%"
     await ctx.send(strin)
-
-
-def resp(search, n):
-    if (on_message("next")):
-        return 0
 
 
 @client.command(aliases=["yt", "YT", "Yt", "Youtube", "YouTube"])
